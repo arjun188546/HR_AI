@@ -1,0 +1,79 @@
+Step 2: Backend Workflow 1 - Resume Processing & Ranking
+In n8n, create a new workflow to handle the analysis.
+
+Trigger:
+
+Webhook Node: Set to POST method. It will receive the multipart/form-data from the frontend. The URL it generates is your N8N_PROCESSING_URL.
+Workflow Steps:
+
+Read Resume Files:
+Read Binary Files Node: This node can read the resume files passed from the webhook. You may need to loop through them if multiple are uploaded.
+Extract Text:
+Extract Text from PDF Node: Connect this to the Read Binary Files node to get the text content. You may need a separate path for .docx files (e.g., using a community node or an external API).
+AI Agent - Rank and Summarize:
+LLM / AI Agent Node (e.g., OpenAI, Anthropic, Google Gemini): This is the core of the workflow.
+Mode: Set it to loop over each resume's text.
+Prompt:
+Format Output:
+Set Node: Aggregate the JSON outputs from the AI node into a single array.
+Respond to Frontend:
+Respond to Webhook Node: Send the final JSON array of ranked candidates back to the Next.js application.
+
+
+Step 3: Backend Workflow 2 - Autonomous Selection & Scheduling
+Create a second n8n workflow for the scheduling part.
+
+Trigger:
+
+Webhook Node: Set to POST. This receives the full list of ranked candidates from the frontend. Its URL is your N8N_SCHEDULING_URL.
+Workflow Steps:
+
+Select Top Candidates:
+Code Node: Use JavaScript to filter the top candidates. For example, select the top 3 or all candidates with a score above 85.
+Loop Through Selections:
+The Code node will output one item for each selected candidate, so the subsequent nodes will run for each one.
+Schedule Interview:
+Google Calendar Node:
+Authentication: Connect your Google account.
+Operation: Create Event.
+Calendar: Select your desired calendar.
+Title: Interview with {{ $json.name }}.
+Attendees: Add your email and the candidate's email: {{ $json.email }}.
+Start/End Time: Define your logic for finding an available slot (this can be simple or complex).
+Send Email to Candidate:
+Gmail / Send Email Node:
+To: {{ $json.email }}.
+Subject: Interview Invitation: {{ jobTitle }} at [Your Company].
+Body: Write a professional email template. You can include the Google Calendar event link from the previous node.
+Respond to Frontend:
+Respond to Webhook Node: Send a confirmation message back.
+Similar code found with 1 license type - View matches
+
+
+Updated Workflow 2: Autonomous Selection & Scheduling
+This workflow uses nodes that have remained largely consistent because they perform fundamental tasks.
+
+1. Trigger: Webhook Node
+
+(No Change) Still the correct trigger.
+2. Select Top Candidates: Code Node
+
+(No Change) The Code node is the standard way to run custom JavaScript for filtering, sorting, and transforming data. The logic you have is still perfect.
+3. Loop Through Selections
+
+(No Change) The Code node will output multiple items, which automatically creates a loop for the subsequent nodes.
+4. Schedule Interview: Google Calendar Node
+
+(No Change) This node is still named Google Calendar and its functionality is the same.
+Configuration: Connect your account, set Operation to Create Event, and map the fields (Title, Attendees, Start/End Time) using expressions.
+5. Send Email: [Provider] Node
+
+(No Change) You still have the same great options:
+Gmail: For sending directly through a Gmail account.
+Send Email: For using any standard SMTP service.
+Other provider-specific nodes (e.g., Microsoft Outlook, Resend).
+Configuration: Map the To, Subject, and Body fields.
+6. Respond to Frontend: Respond to Webhook Node
+
+(No Change) This node correctly sends the final confirmation message.
+The nodes in the second workflow were already modern and fundamental, so no changes are needed there. The main update was in the first workflow with the Extract from File and specific AI Chat Model nodes.
